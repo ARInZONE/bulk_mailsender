@@ -6,6 +6,7 @@ from sendgrid.helpers.mail import Email, Content, Mail, Attachment
 
 send = pandas.read_csv('em_sender_credentials_sendgrid.csv',names=['sender_email_ids','sendgrid_key_id','email_accounts_limit'])
 for i in range(len(send)-1):
+  count = int(send['email_accounts_limit'][i+1])  
   try:
       # Python 3
       import urllib.request as urllib
@@ -37,12 +38,18 @@ for i in range(len(send)-1):
 
     mail = Mail(from_email, subject, to_email, content)
     mail.add_attachment(attachment)
-    try:
+    if(count<100):
+      try:
+        print "email number :"
+        print count
+        count+=1
         response = sg.client.mail.send.post(request_body=mail.get())
-    except urllib.HTTPError as e:
+      except urllib.HTTPError as e:
         print(e.read())
         exit()
-
-    print(response.status_code)
-    print(response.body)
-    print(response.headers)
+      finally:
+        print(response.status_code)
+        print(response.body)
+        print(response.headers)
+        send['email_accounts_limit'][i+1]=count
+        send.to_csv('em_sender_credentials_sendgrid.csv', sep=',',index = False, header = False)
